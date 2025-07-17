@@ -1,11 +1,19 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Permissions for EchoPath functionality -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    
     <application
         android:label="echo_guide"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
-         <!-- TODO: Add your Google Maps API key here -->
+        <!-- Google Maps API key loaded from local.properties -->
         <meta-data android:name="com.google.android.geo.API_KEY"
-               android:value="AIzaSyAJWak4hM-93gT9dpNg6xtwCnGVXMBeB8I"/>
+               android:value="${GOOGLE_MAPS_API_KEY}"/>
 
         <activity
             android:name=".MainActivity"

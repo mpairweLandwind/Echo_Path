@@ -13,13 +13,14 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final GoogleSignIn _googleSignIn = GoogleSignIn();
   bool isLoading = false;
 
   Future<void> signInWithGoogle() async {
     setState(() => isLoading = true);
 
     try {
-      final googleUser = await GoogleSignIn().signIn();
+      final googleUser = await _googleSignIn.signIn();
 
       if (googleUser == null) {
         // User cancelled sign-in
@@ -39,9 +40,9 @@ class _LoginScreenState extends State<LoginScreen> {
     } catch (e) {
       developer.log("Google Sign-In Error: $e", name: "LoginScreen");
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Google Sign-In Failed: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Google Sign-In Failed: $e')));
       }
     } finally {
       if (mounted) setState(() => isLoading = false);
@@ -57,9 +58,9 @@ class _LoginScreenState extends State<LoginScreen> {
     } catch (e) {
       developer.log("Anonymous Sign-In Error: $e", name: "LoginScreen");
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Guest Login Failed: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Guest Login Failed: $e')));
       }
     } finally {
       if (mounted) setState(() => isLoading = false);
@@ -82,26 +83,27 @@ class _LoginScreenState extends State<LoginScreen> {
     return Scaffold(
       backgroundColor: Colors.black,
       body: Center(
-        child: isLoading
-            ? const CircularProgressIndicator(color: Colors.white)
-            : Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text(
-                    "Login to EchoPath",
-                    style: TextStyle(color: Colors.white, fontSize: 24),
-                  ),
-                  const SizedBox(height: 20),
-                  ElevatedButton(
-                    onPressed: signInWithGoogle,
-                    child: const Text("Continue with Google"),
-                  ),
-                  ElevatedButton(
-                    onPressed: signInAnonymously,
-                    child: const Text("Continue as Guest"),
-                  ),
-                ],
-              ),
+        child:
+            isLoading
+                ? const CircularProgressIndicator(color: Colors.white)
+                : Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text(
+                      "Login to EchoPath",
+                      style: TextStyle(color: Colors.white, fontSize: 24),
+                    ),
+                    const SizedBox(height: 20),
+                    ElevatedButton(
+                      onPressed: signInWithGoogle,
+                      child: const Text("Continue with Google"),
+                    ),
+                    ElevatedButton(
+                      onPressed: signInAnonymously,
+                      child: const Text("Continue as Guest"),
+                    ),
+                  ],
+                ),
       ),
     );
   }

@@ -60,10 +60,20 @@ class _MapScreenState extends State<MapScreen> {
       await _audioNarrationService.initialize();
       await _initTts();
 
+      // Get initial position to center the map
+      final initialPosition = await _locationService.getInitialPosition();
+      setState(() {
+        _currentPosition = initialPosition;
+      });
+      _centerMapOnUser();
+
       // Listen to location updates
       _locationService.positionStream.listen(_onPositionUpdate);
       _locationService.nearbyLandmarksStream.listen(_onNearbyLandmarksUpdate);
       _locationService.landmarkEnteredStream.listen(_onLandmarkEntered);
+
+      // Listen to voice commands for UI
+      _voiceCommandService.uiCommandStream.listen(_onUiCommand);
 
       // Start location tracking
       await _startLocationTracking();
@@ -83,6 +93,28 @@ class _MapScreenState extends State<MapScreen> {
           "Error initializing map services. Please check your location permissions.",
         );
       }
+    }
+  }
+
+  void _centerMapOnUser() {
+    if (_mapController != null && _currentPosition != null) {
+      _mapController!.animateCamera(
+        CameraUpdate.newCameraPosition(
+          CameraPosition(
+            target: LatLng(
+              _currentPosition!.latitude,
+              _currentPosition!.longitude,
+            ),
+            zoom: 16.0,
+          ),
+        ),
+      );
+    }
+  }
+
+  void _onUiCommand(String command) {
+    if (command == 'center_map') {
+      _centerMapOnUser();
     }
   }
 
@@ -374,7 +406,7 @@ class _MapScreenState extends State<MapScreen> {
     await _tts.speak("${landmark.name}. ${landmark.description}");
 
     // Provide haptic feedback
-    if (await Vibration.hasVibrator() ?? false) {
+    if (await Vibration.hasVibrator()) {
       Vibration.vibrate(duration: 300);
     }
 
@@ -426,7 +458,7 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   Future<void> _provideDirectionalHaptic(double bearing) async {
-    if (await Vibration.hasVibrator() ?? false) {
+    if (await Vibration.hasVibrator()) {
       if (bearing >= 315 || bearing < 45) {
         Vibration.vibrate(duration: 200);
       } else if (bearing >= 45 && bearing < 135) {
@@ -535,7 +567,15 @@ class _MapScreenState extends State<MapScreen> {
             onMapCreated: (GoogleMapController controller) {
               _mapController = controller;
             },
-            initialCameraPosition: _defaultPosition,
+            initialCameraPosition: _currentPosition != null
+                ? CameraPosition(
+                    target: LatLng(
+                      _currentPosition!.latitude,
+                      _currentPosition!.longitude,
+                    ),
+                    zoom: 16.0,
+                  )
+                : _defaultPosition,
             markers: _markers,
             myLocationEnabled: true,
             myLocationButtonEnabled: false,
@@ -557,7 +597,7 @@ class _MapScreenState extends State<MapScreen> {
             child: Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: Colors.black.withOpacity(0.7),
+                color: const Color.fromRGBO(0, 0, 0, 0.7),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Row(
@@ -627,8 +667,8 @@ class _MapScreenState extends State<MapScreen> {
             child: Column(
               children: [
                 FloatingActionButton(
-                  heroTag: 'location',
-                  onPressed: _speakCurrentLocation,
+                  heroTag: 'center_map',
+                  onPressed: _centerMapOnUser,
                   backgroundColor: Colors.blue,
                   child: const Icon(Icons.my_location, color: Colors.white),
                 ),
@@ -671,7 +711,7 @@ class _MapScreenState extends State<MapScreen> {
                 width: 200,
                 height: 150,
                 decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.8),
+                  color: const Color.fromRGBO(0, 0, 0, 0.8),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: ListView.builder(

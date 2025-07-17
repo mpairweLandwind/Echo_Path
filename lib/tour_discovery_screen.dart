@@ -90,11 +90,14 @@ class _TourDiscoveryScreenState extends State<TourDiscoveryScreen> {
             Text(locationInfo, style: TextStyle(color: Colors.white)),
             SizedBox(height: 20),
             ElevatedButton(
-              onPressed:
-                  () => Navigator.push(
+              onPressed: () {
+                if (mounted) {
+                  Navigator.push(
                     context,
                     MaterialPageRoute(builder: (_) => AudioGuideScreen()),
-                  ),
+                  );
+                }
+              },
               child: Text("Start Audio Tour"),
             ),
             SizedBox(height: 20),
@@ -111,11 +114,10 @@ class _TourDiscoveryScreenState extends State<TourDiscoveryScreen> {
               icon: Icon(Icons.record_voice_over),
               label: Text("Simulate 'yes' command"),
               onPressed: () async {
+                final navigator = Navigator.of(context);
                 await FlutterTts().speak("Starting the audio tour now.");
-                if (!mounted) return;
                 if (mounted) {
-                  Navigator.push(
-                    context,
+                  navigator.push(
                     MaterialPageRoute(builder: (_) => AudioGuideScreen()),
                   );
                 }

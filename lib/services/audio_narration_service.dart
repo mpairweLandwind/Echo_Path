@@ -326,7 +326,7 @@ class AudioNarrationService {
   }
 
   Future<void> _provideDirectionalHaptic(double bearing) async {
-    if (await Vibration.hasVibrator() ?? false) {
+    if (await Vibration.hasVibrator()) {
       if (bearing >= 315 || bearing < 45) {
         // North - single vibration
         Vibration.vibrate(duration: 200);
@@ -360,7 +360,7 @@ class AudioNarrationService {
     await _tts.speak(narration);
 
     // Provide haptic feedback
-    if (await Vibration.hasVibrator() ?? false) {
+    if (await Vibration.hasVibrator()) {
       Vibration.vibrate(duration: 500);
     }
   }
@@ -374,7 +374,7 @@ class AudioNarrationService {
     await _tts.speak(narration);
 
     // Emergency haptic pattern
-    if (await Vibration.hasVibrator() ?? false) {
+    if (await Vibration.hasVibrator()) {
       for (int i = 0; i < 5; i++) {
         Vibration.vibrate(duration: 1000);
         await Future.delayed(Duration(milliseconds: 500));

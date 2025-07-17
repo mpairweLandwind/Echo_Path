@@ -189,7 +189,7 @@ class LocationService {
     );
 
     // Provide haptic feedback
-    if (await Vibration.hasVibrator() ?? false) {
+    if (await Vibration.hasVibrator()) {
       Vibration.vibrate(duration: 500);
     }
 
@@ -215,6 +215,19 @@ class LocationService {
     // In a real app, you'd use reverse geocoding here
     return "You are at coordinates: ${_currentPosition!.latitude.toStringAsFixed(4)}, "
            "${_currentPosition!.longitude.toStringAsFixed(4)}";
+  }
+
+  // Get initial position
+  Future<Position> getInitialPosition() async {
+    final hasPermission = await _requestPermissions();
+    if (!hasPermission) {
+      throw Exception("Location permission not granted.");
+    }
+    return await Geolocator.getCurrentPosition(
+      locationSettings: const LocationSettings(
+        accuracy: LocationAccuracy.high,
+      ),
+    );
   }
 
   // Get distance to a specific landmark
@@ -271,7 +284,7 @@ class LocationService {
   }
 
   Future<void> _provideDirectionalHaptic(double bearing) async {
-    if (await Vibration.hasVibrator() ?? false) {
+    if (await Vibration.hasVibrator()) {
       // Different vibration patterns for different directions
       if (bearing >= 315 || bearing < 45) {
         // North - single vibration

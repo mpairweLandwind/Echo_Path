@@ -17,8 +17,19 @@ class VoiceCommandService {
   bool _isInitialized = false;
   Timer? _listeningTimer;
 
+  // Stream for UI commands
+  final StreamController<String> _uiCommandController =
+      StreamController<String>.broadcast();
+  Stream<String> get uiCommandStream => _uiCommandController.stream;
+
   // Command patterns
   static const Map<String, List<String>> _commandPatterns = {
+    'center_map': [
+      'center map',
+      'show my location',
+      'focus on me',
+      'center on my position',
+    ],
     'where_am_i': [
       'where am i',
       'my location',
@@ -116,6 +127,11 @@ class VoiceCommandService {
   }
 
   Future<void> _initSpeechRecognition() async {
+    // Check if already available to avoid re-initialization
+    if (_speech.isAvailable) {
+      return;
+    }
+
     bool available = await _speech.initialize(
       onError: (val) => print('Speech recognition error: $val'),
       onStatus: (val) => print('Speech recognition status: $val'),
@@ -137,9 +153,11 @@ class VoiceCommandService {
         onResult: _onSpeechResult,
         listenFor: const Duration(seconds: 10),
         pauseFor: const Duration(seconds: 3),
-        partialResults: false,
-        cancelOnError: true,
-        listenMode: stt.ListenMode.confirmation,
+        listenOptions: stt.SpeechListenOptions(
+          cancelOnError: true,
+          listenMode: stt.ListenMode.confirmation,
+          partialResults: false,
+        ),
       );
 
       // Auto-restart listening after timeout
@@ -216,6 +234,9 @@ class VoiceCommandService {
   // Execute specific commands
   Future<void> _executeCommand(String commandType, String fullCommand) async {
     switch (commandType) {
+      case 'center_map':
+        await _handleCenterMap();
+        break;
       case 'where_am_i':
         await _handleWhereAmI();
         break;
@@ -265,6 +286,11 @@ class VoiceCommandService {
         await _handleOtherUsers();
         break;
     }
+  }
+
+  Future<void> _handleCenterMap() async {
+    await _tts.speak("Centering the map on your location.");
+    _uiCommandController.add('center_map');
   }
 
   // Command handlers
@@ -484,6 +510,7 @@ class VoiceCommandService {
 
   Future<void> _handleHelp() async {
     String helpText = "Available voice commands: ";
+    helpText += "Say 'center map' to focus on your current location. ";
     helpText += "Say 'where am I' to get your current location. ";
     helpText += "Say 'nearby attractions' to hear what's around you. ";
     helpText += "Say 'describe surroundings' for detailed area information. ";
@@ -530,5 +557,6 @@ class VoiceCommandService {
   // Dispose resources
   void dispose() {
     stopListening();
+    _uiCommandController.close();
   }
 }
